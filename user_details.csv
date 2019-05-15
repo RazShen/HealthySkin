@@ -1,0 +1,2 @@
+// used for authentication and save user result
+// each picture user sends will be saved in a folder named his id, each image will stored in that folder
