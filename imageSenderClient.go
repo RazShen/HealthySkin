@@ -52,11 +52,39 @@ func connectToServer(conn net.Conn, reader *bufio.Reader) error {
 	*/
 	message, _ := bufio.NewReader(conn).ReadString('\n')
 	if strings.Contains(message, "0") {
+		// User isn't authenticated, so we should create it (send id, age, weight)
+		fmt.Print("User authentication failed, Start signing up processes")
+		fmt.Println("Enter your id")
+		id, _ := reader.ReadString('\n')
+		if usrName == "q\n" {
+			os.Exit(0)
+		}
+		// send to socket
+		_, err := fmt.Fprintf(conn, id+"\n")
+
+		fmt.Println("Enter your age")
+		age, err := reader.ReadString('\n')
+		if password == "q\n" {
+			os.Exit(0)
+		}
+		// send to socket
+		_, err = fmt.Fprintf(conn, age+"\n")
+
+		fmt.Println("Enter your weight")
+		weight, err := reader.ReadString('\n')
+		if password == "q\n" {
+			os.Exit(0)
+		}
+		// send to socket
+		_, err = fmt.Fprintf(conn, weight+"\n")
+		if err != nil {
+			return err
+		}
 
 	} else {
-
+		// User is authenticated, can processed to send image
+		fmt.Print("User is authenticated successfully!")
 	}
-	fmt.Print("Message from server: " + message)
 	return nil
 }
 
