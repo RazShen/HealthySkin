@@ -10,6 +10,10 @@ import (
 	"strings"
 )
 
+const (
+	BUFFERSIZE = 1024
+)
+
 func fillString(retunString string, toLength int) string {
 	for {
 		lengtString := len(retunString)
@@ -51,15 +55,7 @@ func connectToServer(conn net.Conn, reader *bufio.Reader) error {
 	message, _ := bufio.NewReader(conn).ReadString('\n')
 	if strings.Contains(message, "0") {
 		// User isn't authenticated, so we should create it (send id, age, weight)
-		fmt.Print("User authentication failed, Start signing up processes")
-		fmt.Println("Enter your id")
-		id, _ := reader.ReadString('\n')
-		if usrName == "q\n" {
-			os.Exit(0)
-		}
-		// send to socket
-		_, err := fmt.Fprintf(conn, id+"\n")
-
+		fmt.Print("User authentication failed, Start signing up processes\n")
 		fmt.Println("Enter your age")
 		age, err := reader.ReadString('\n')
 		if password == "q\n" {
@@ -126,7 +122,7 @@ func sendImageToServer(conn net.Conn, reader *bufio.Reader) error {
 func main() {
 
 	// connect to this socket
-	conn, err := net.Dial("tcp", "172.18.34.99:8181")
+	conn, err := net.Dial("tcp", "127.0.0.1:8181")
 	if err != nil {
 		fmt.Println("Error connecting to server:", err.Error())
 		os.Exit(1)
@@ -146,5 +142,5 @@ func main() {
 
 	// listen for reply
 	message, _ := bufio.NewReader(conn).ReadString('\n')
-	fmt.Print("Message from server: " + message)
+	fmt.Print("Message from server: \n" + message)
 }

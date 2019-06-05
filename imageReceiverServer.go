@@ -1,6 +1,11 @@
 package main
 
 import (
+	"HealthySkin/DBDAL"
+	"HealthySkin/MLAPI"
+	"bufio"
+	"crypto/md5"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"net"
@@ -10,7 +15,7 @@ import (
 )
 
 const (
-	CONN_HOST  = "172.18.34.99"
+	CONN_HOST  = "127.0.0.1"
 	CONN_PORT  = "8181"
 	CONN_TYPE  = "tcp"
 	BUFFERSIZE = 1024
@@ -41,32 +46,7 @@ func main() {
 }
 
 func handleClient(conn net.Conn) {
-	//// run loop forever (or until ctrl-c)
-	//for {
-	//	// will listen for message to process ending in newline (\n)
-	//	message, err := bufio.NewReader(conn).ReadString('\n')
-	//	if err != nil {
-	//		fmt.Println("Error reading from user:", err.Error())
-	//		conn.Close()
-	//		return
-	//	}
-	//
-	//	// output message received
-	//	fmt.Print("Message Received:", string(message))
-	//	// sample process for string received
-	//
-	//	newmessage := strings.ToUpper(message)
-	//	// send new string back to client
-	//	_, err = conn.Write([]byte(newmessage + "\n"))
-	//	if err != nil {
-	//		fmt.Println("Error writing to user:", err.Error())
-	//		conn.Close()
-	//		return
-	//	}
-	//
-	//}
-
-	fmt.Println("Connected to server, start receiving the file name and file size")
+	fmt.Println("New client connected to server!")
 	//bufferFileName := make([]byte, 64)
 	bufferUserName := make([]byte, 64)
 	bufferPassword := make([]byte, 64)
@@ -88,7 +68,26 @@ func handleClient(conn net.Conn) {
 		return
 	}
 
-	//password := strings.Split(string(bufferPassword), "\n")[0]
+	password := strings.Split(string(bufferPassword), "\n")[0]
+
+	userInfo := DBDAL.GetUserDetailsById(userName, GetMD5Hash(password))
+	if userInfo == nil {
+		_, err = fmt.Fprintln(conn, "0")
+		userInfo = getNewUserDetailsFromClinet(conn, userName, GetMD5Hash(password))
+		DBDAL.SaveUserInfoDetails(*userInfo)
+		if err != nil {
+			handleError(conn, "Error writing to user:", err)
+			return
+		}
+
+	} else {
+		_, err = fmt.Fprintln(conn, "1")
+		if err != nil {
+			handleError(conn, "Error writing to user:", err)
+			return
+		}
+	}
+
 	fileName := "image from user_" + userName
 
 	_, err = conn.Read(bufferFileSize)
@@ -106,6 +105,7 @@ func handleClient(conn net.Conn) {
 	}
 
 	defer newFile.Close()
+	defer conn.Close()
 	var receivedBytes int64
 
 	for {
@@ -122,9 +122,37 @@ func handleClient(conn net.Conn) {
 		receivedBytes += BUFFERSIZE
 	}
 	fmt.Println("Received file completely!")
+	prediction := MLAPI.GetIsCancerImage(newFile, userInfo)
+	if prediction == true {
+		_, err = conn.Write([]byte("Prediction for image: negative.\n"))
+	} else {
+		_, err = conn.Write([]byte("Prediction for image: positive. Go to doctor urgently!\n"))
+	}
 }
 
 func handleError(conn net.Conn, errMsg string, err error) {
 	fmt.Println(errMsg, err.Error())
 	conn.Close()
+}
+
+func GetMD5Hash(text string) string {
+	hasher := md5.New()
+	hasher.Write([]byte(text))
+	return hex.EncodeToString(hasher.Sum(nil))
+}
+
+func getNewUserDetailsFromClinet(conn net.Conn, userName string, md5Password string) *DBDAL.UserInfo {
+	s, err := bufio.NewReader(conn).ReadString('\n')
+	if err != nil {
+		handleError(conn, "Error reading age from user:", err)
+		return nil
+	}
+	age, _ := strconv.Atoi(s)
+	s, err = bufio.NewReader(conn).ReadString('\n')
+	if err != nil {
+		handleError(conn, "Error reading weight from user:", err)
+		return nil
+	}
+	weight, _ := strconv.Atoi(s)
+	return &DBDAL.UserInfo{md5Password, userName, age, weight}
 }

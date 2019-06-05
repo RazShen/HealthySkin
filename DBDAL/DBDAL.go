@@ -3,24 +3,23 @@ package DBDAL
 //named data base data access layer
 
 type UserInfo struct {
-	id          int
-	md5Password string
-	name        string
-	age         int
-	weight      int
+	MD5Password string
+	UserName    string
+	Age         int
+	Weight      int
 }
 
-var userDetailsDict = make(map[int]UserInfo)
+var userDetailsDict = make(map[string]UserInfo)
 
-func saveUserInfoDetails(userInfo UserInfo) {
-	userDetailsDict[userInfo.id] = userInfo
+func SaveUserInfoDetails(userInfo UserInfo) {
+	userDetailsDict[userInfo.UserName] = userInfo
 }
 
-func getUserDetailsById(id int, md5Password string) *UserInfo {
+func GetUserDetailsById(userName string, md5Password string) *UserInfo {
 
-	value, ok := userDetailsDict[id]
+	value, ok := userDetailsDict[userName]
 	if ok {
-		if value.md5Password == md5Password {
+		if value.MD5Password == md5Password {
 			return &value
 		}
 	}
