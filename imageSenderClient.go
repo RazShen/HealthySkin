@@ -10,8 +10,6 @@ import (
 	"strings"
 )
 
-const BUFFERSIZE = 1024
-
 func fillString(retunString string, toLength int) string {
 	for {
 		lengtString := len(retunString)
