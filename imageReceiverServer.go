@@ -1,13 +1,13 @@
 package main
 
 import (
+	"fmt"
 	"io"
 	"net"
+	"os"
 	"strconv"
+	"strings" // only needed below for sample processing
 )
-import "fmt"
-import "strings" // only needed below for sample processing
-import "os"
 
 const (
 	CONN_HOST  = "172.18.34.99"
@@ -67,24 +67,37 @@ func handleClient(conn net.Conn) {
 	//}
 
 	fmt.Println("Connected to server, start receiving the file name and file size")
-	bufferFileName := make([]byte, 64)
+	//bufferFileName := make([]byte, 64)
+	bufferUserName := make([]byte, 64)
+	bufferPassword := make([]byte, 64)
 	bufferFileSize := make([]byte, 10)
 
-	_, err := conn.Read(bufferFileSize)
+	// Get User name
+	_, err := conn.Read(bufferUserName)
+	if err != nil {
+		handleError(conn, "Error reading user name from user:", err)
+		return
+	}
+
+	userName := strings.Split(string(bufferUserName), "\n")[0]
+
+	// Get Password
+	_, err = conn.Read(bufferPassword)
+	if err != nil {
+		handleError(conn, "Error reading file name from user:", err)
+		return
+	}
+
+	//password := strings.Split(string(bufferPassword), "\n")[0]
+	fileName := "image from user_" + userName
+
+	_, err = conn.Read(bufferFileSize)
 	if err != nil {
 		handleError(conn, "Error reading file size from user:", err)
 		return
 	}
 
 	fileSize, _ := strconv.ParseInt(strings.Trim(string(bufferFileSize), ":"), 10, 64)
-
-	_, err = conn.Read(bufferFileName)
-	if err != nil {
-		handleError(conn, "Error reading file name from user:", err)
-		return
-	}
-
-	fileName := strings.Trim(string(bufferFileName), ":")
 
 	newFile, err := os.Create(fileName)
 
