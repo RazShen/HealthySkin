@@ -21,6 +21,7 @@ const (
 	BUFFERSIZE = 1024
 )
 
+// main function of the server- it listens to tcp connections and activates handle client for each
 func main() {
 	fmt.Println("Launching server...")
 	// listen on all interfaces
@@ -45,6 +46,7 @@ func main() {
 
 }
 
+// this function handles new client connection to the server
 func handleClient(conn net.Conn) {
 	fmt.Println("New client connected to server!")
 	//bufferFileName := make([]byte, 64)
@@ -95,7 +97,7 @@ func handleClient(conn net.Conn) {
 		handleError(conn, "Error reading file size from user:", err)
 		return
 	}
-
+	// get the file size of the image
 	fileSize, _ := strconv.ParseInt(strings.Trim(string(bufferFileSize), ":"), 10, 64)
 
 	newFile, err := os.Create(fileName)
@@ -130,17 +132,20 @@ func handleClient(conn net.Conn) {
 	}
 }
 
+// handle error
 func handleError(conn net.Conn, errMsg string, err error) {
 	fmt.Println(errMsg, err.Error())
 	conn.Close()
 }
 
+// the server doesn't save the password itself but a md5 of the password
 func GetMD5Hash(text string) string {
 	hasher := md5.New()
 	hasher.Write([]byte(text))
 	return hex.EncodeToString(hasher.Sum(nil))
 }
 
+// this function returns struct of user details from the client
 func getNewUserDetailsFromClinet(conn net.Conn, userName string, md5Password string) *DBDAL.UserInfo {
 	s, err := bufio.NewReader(conn).ReadString('\n')
 	if err != nil {

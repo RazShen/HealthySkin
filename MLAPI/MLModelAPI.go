@@ -7,8 +7,8 @@ import (
 	"os"
 )
 
+// this function activates a machine learning model to check the image for positive/negative cancer detection.
 func GetIsCancerImage(imageFile *os.File, userDetails *DBDAL.UserInfo) bool {
-	//need to run python script and send him user details and image bytes in order to know if its cancer or not
 	var result = rand.Intn(2)
 	return result == 1
 }

@@ -14,6 +14,7 @@ const (
 	BUFFERSIZE = 1024
 )
 
+// this function fills string to a specific length
 func fillString(retunString string, toLength int) string {
 	for {
 		lengtString := len(retunString)
@@ -26,6 +27,7 @@ func fillString(retunString string, toLength int) string {
 	return retunString
 }
 
+// this function connects to server and does full authentication
 func connectToServer(conn net.Conn, reader *bufio.Reader) error {
 	/*
 		Sending user name and password to server
@@ -82,6 +84,7 @@ func connectToServer(conn net.Conn, reader *bufio.Reader) error {
 	return nil
 }
 
+// this function sends an image to the server (gets its path from the user)
 func sendImageToServer(conn net.Conn, reader *bufio.Reader) error {
 	fmt.Print("Please insert path of image to send to HealthySkin server: " +
 		"\n(to quit insert 'q')\n")
@@ -119,8 +122,9 @@ func sendImageToServer(conn net.Conn, reader *bufio.Reader) error {
 	return nil
 }
 
+// main class of the client, it establishes the tcp connection with the server and is in charge of sending the image
+// and receiving the result
 func main() {
-
 	// connect to this socket
 	conn, err := net.Dial("tcp", "127.0.0.1:8181")
 	if err != nil {
