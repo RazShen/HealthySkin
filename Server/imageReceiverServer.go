@@ -37,7 +37,7 @@ func main() {
 	for {
 		fmt.Println("Waiting for new connection...")
 		conn, err := ln.Accept()
-		handleClient(conn)
+		go handleClient(conn)
 		if err != nil {
 			fmt.Println("Error connecting to user:", err.Error())
 			os.Exit(1)
